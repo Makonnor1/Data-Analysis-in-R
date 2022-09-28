@@ -1,0 +1,79 @@
+---
+title: "HW 8"
+author: "Marley Akonnor"
+date: "9/6/2021"
+output: pdf_document
+---
+
+Step 1: Load the Data
+Access read.xls function from the gdata package
+```{r}
+library(gdata)
+```
+
+Read the data
+```{r}
+antelope_pop <- read.xls("/Users/m/Documents/M.S Syracuse Data Science/Courses/IST 687 - Intro to Data Science/Week 9/mlr01.xls")
+```
+
+Rename the columns
+```{r}
+new_column_names <- c("Fawn_Population", "Antelope_Population", "Annual_Precipitation", "Winter_Severity")
+```
+
+Assign the column names to the dataset
+```{r}
+colnames(antelope_pop) <- new_column_names
+```
+
+Inspect the dataset
+```{r antelope_pop}
+str(antelope_pop)
+```
+
+Create bivariate plots of number of baby fawns versus adult antelope population, the precipitation that year, and the severity of the winter.
+fawn(y) vs antelope(x)
+```{r Fawn Population Growth 1}
+plot(antelope_pop$Antelope_Population,antelope_pop$Fawn_Population)
+```
+
+fawn(y) vs precipitation(x)
+```{r Fawn Population Growth 2}
+plot(antelope_pop$Annual_Precipitation,antelope_pop$Fawn_Population)
+```
+
+fawn(y) vs winter(x)
+```{r Fawn Population Growth 3}
+plot(antelope_pop$Winter_Severity,antelope_pop$Fawn_Population)
+```
+
+Next, create three regression models of increasing complexity using lm()
+In the first model, predict the number of fawns from the severity of the winter
+```{r}
+fawn_wint_model_1 <- lm(formula = Fawn_Population ~ Winter_Severity, data = antelope_pop)
+summary(fawn_wint_model_1)
+```
+
+In the second model, predict the number of fawns from two variables (one should be the severity of the winter)
+```{r}
+fawn_precip_wint_model_2 <- lm(formula = Fawn_Population ~ Annual_Precipitation + Winter_Severity, data = antelope_pop)
+summary(fawn_precip_wint_model_2)
+```
+
+In the third model predict the number of fawns from the three other variables
+```{r}
+all_var_model_3 <- lm(formula = Fawn_Population ~ Antelope_Population + Annual_Precipitation + Winter_Severity, data = antelope_pop)
+summary(all_var_model_3)
+```
+
+Which model works best?
+The third model works the best. The multiple R-squared is 97% and the F statistic P-value is the lowest of the 3.
+
+Which of the predictors are statistically significant in each model?
+The statistically significant predictor in model 1 is: Winter Severity
+The statistically significant predictor in model 2 is: Annual Precipitation
+The statistically significant predictors in model 3 are: Winter Severity, Annual Precipitation, and Antelope Population
+
+If you wanted to create the most parsimonious model (i.e., the one that did the best job with the fewest predictors), what would it contain?
+It would contain the Antelope Population and Annual Precipitation.
+
