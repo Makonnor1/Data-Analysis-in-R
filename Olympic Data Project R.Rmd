@@ -1,0 +1,149 @@
+---
+title: "Olympics Project"
+author: "Marley Akonnor"
+date: "9/14/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Question: Can we predict the Medal won based on Age, Height, and Weight
+```{r}
+library(neuralnet)
+```
+Read in the dataset
+```{r}
+oly_data <- read.csv("/Users/m/Documents/M.S Syracuse Data Science/Courses/IST 687 - Intro to Data Science/Project/athlete_events.csv")
+```
+
+#Clean the dataset - rid of NAs
+```{r}
+oly_data <- na.omit(oly_data)
+```
+
+Check to see if any remain
+```{r}
+sum(is.na(oly_data))
+```
+
+Inspect the structure
+```{r}
+str(oly_data)
+```
+
+Look at a summmary of our data
+```{r}
+summary(oly_data)
+```
+
+Convert the "Sport" column from characters to factors
+```{r}
+oly_data$Sport <- as.factor(oly_data$Sport)
+```
+
+What are the unique values of medal?
+```{r}
+unique(oly_data$Medal)
+```
+
+Make "Medal" column easier to read and convert to int
+```{r}
+oly_data[oly_data$Medal == "Gold", ]$Medal <- 0
+oly_data[oly_data$Medal == "Silver", ]$Medal <- 1
+oly_data[oly_data$Medal == "Bronze", ]$Medal <- 2
+oly_data$Medal <- as.numeric(oly_data$Medal)
+```
+
+Examine distributions with histograms
+```{r}
+hist(oly_data$Age)
+
+hist(oly_data$Height)
+
+hist(oly_data$Weight)
+```
+
+Min-Max normalization
+create Normalization function (https://datasharkie.com/how-to-normalize-data-in-r/)
+```{r}
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+Normalize Age and look at histogram
+```{r}
+oly_data$Age <- normalize(oly_data$Age)
+hist(oly_data$Age)
+```
+
+Normalize Height and look at histogram
+```{r}
+oly_data$Height <- normalize(oly_data$Height)
+hist(oly_data$Height)
+```
+
+Normalize Weight and look at histogram
+```{r}
+oly_data$Weight <- normalize(oly_data$Weight)
+hist(oly_data$Weight)
+```
+
+Normalize Medal and look at histogram
+```{r}
+oly_data$Medal <- normalize(oly_data$Medal)
+hist(oly_data$Medal)
+```
+
+Create a new Olympic dataframe with relevant variables
+```{r}
+new_oly_data <- data.frame(oly_data$Medal, oly_data$Age, oly_data$Height, oly_data$Weight)
+```
+
+Rename the columns
+```{r}
+col_names <- c("Medal", "Age", "Height", "Weight")
+colnames(new_oly_data) <- col_names
+```
+
+Data partition and random indexing
+```{r}
+ran_ind <- sample(1:dim(new_oly_data)[1])
+prorat_data <- floor(2 * dim(new_oly_data)[1]/3)
+```
+
+Create training data
+```{r}
+training_data <- new_oly_data[ran_ind[1:prorat_data], ]
+```
+
+Create test data
+```{r}
+testing_data <- new_oly_data[ran_ind[(prorat_data+1):dim(new_oly_data)[1]],]
+```
+
+Neural Network model
+```{r}
+oly_nn <- neuralnet(Medal ~ Age + Height + Weight, data = training_data, hidden = 2, err.fct = "sse", linear.output = FALSE)
+plot(oly_nn, rep = "best")
+```
+
+Prediction
+```{r}
+nn_output <- compute(oly_nn, training_data[, -1])
+head(nn_output$net.result)
+head(training_data[1:6, ])
+```
+
+Create a subset of the testing data
+```{r}
+temp_test <- subset(testing_data, select = c("Age", "Height", "Weight"))
+head(temp_test)
+```
+
+Run Neural Net on test data
+```{r}
+olynn.results <- compute(oly_nn, temp_test)
+results <- data.frame(actual=testing_data$Medal, prediction=olynn.results$net.result)
+results[1:20,]
+```
